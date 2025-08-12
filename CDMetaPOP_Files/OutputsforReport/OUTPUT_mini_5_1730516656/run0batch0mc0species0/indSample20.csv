@@ -1,0 +1,2 @@
+PatchID,XCOORD,YCOORD,ID,MID,FID,sex,age,size,mature,newmature,layeggs,capture,recapture,infection,CDist,Hindex,Species,ClassFile,SubPatchID,L0A0,L0A1,L1A0,L1A1
+10,44.097,-122.493,E10_F10_m10f12_P10_Y8_UO4976,S10_F10_m10f10_P10_Y6_UO4918,I12_F12_m-1f-1_P12_Y-1_U68,FXX,12,0.0,1,0,1.0,0,0,0,-9999.0,0.65625,1,P8_CV0,2,2,0,0,2

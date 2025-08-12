@@ -1,0 +1,74 @@
+
+CDmetaPOP Release 2024.10.20-09:09:09 Version version 2.74
+
+Author(s): Erin L Landguth, Casey Day, Andrew Bearlin, Ryan Simmons, Travis Seaborn, et al.
+
+Session runtime inputs from: ../ASC/RunVars.csv
+
+
+Session popvars inputs from: popvars/PopVars_TWOCD.csv
+
+
+On run: 0
+
+
+DoPreProcess(): 0:00:00.461871
+GetMetrics() Initial: 0:00:00.031257
+The file ind-1.csv has been created
+DoUpdate(): 0:00:00.285660
+DoCDClimate(): 0:00:00.015623
+DoMate() and DoOffspring: 0:00:01.168059
+The file ind0.csv has been created
+Second DoUpdate(): 0:00:00.347260
+DoEmigration(): 0:00:01.850396
+DoOutMortality(): 0:00:00.031250
+Third DoUpdate(): 0:00:00.101743
+DoImmigration(): 0:00:00.602935
+DoInMortality(): 0:00:00.046870
+GetMetrics(): 0:00:00.015633
+End Generation/Year Loop0: 0:00:04.179769
+
+DoCDClimate(): 0:00:00.015561
+DoMate() and DoOffspring: 0:00:00.424212
+Second DoUpdate(): 0:00:00.031375
+DoEmigration(): 0:00:00.481234
+DoOutMortality(): 0:00:00.013947
+Third DoUpdate(): 0:00:00.034887
+DoImmigration(): 0:00:00.222457
+DoInMortality(): 0:00:00.017940
+GetMetrics(): 0:00:00.011970
+End Generation/Year Loop1: 0:00:01.253583
+
+DoCDClimate(): 0:00:00.003909
+DoMate() and DoOffspring: 0:00:00.178775
+Second DoUpdate(): 0:00:00.014952
+DoEmigration(): 0:00:01.293865
+DoOutMortality(): 0:00:00.048303
+Third DoUpdate(): 0:00:00.093811
+DoImmigration(): 0:00:00.611695
+DoInMortality(): 0:00:00.064255
+GetMetrics(): 0:00:00.031535
+End Generation/Year Loop2: 0:00:02.342128
+
+DoCDClimate(): 0:00:00
+DoMate() and DoOffspring: 0:00:00.525273
+Second DoUpdate(): 0:00:00.034873
+DoEmigration(): 0:00:01.333257
+DoOutMortality(): 0:00:00.041764
+Third DoUpdate(): 0:00:00.100419
+DoImmigration(): 0:00:00.671807
+DoInMortality(): 0:00:00.062484
+GetMetrics(): 0:00:00.031884
+End Generation/Year Loop3: 0:00:02.801761
+
+DoCDClimate(): 0:00:00
+DoMate() and DoOffspring: 0:00:00.747035
+Second DoUpdate(): 0:00:00.047639
+DoEmigration(): 0:00:01.746417
+DoOutMortality(): 0:00:00.046874
+Third DoUpdate(): 0:00:00.109367
+DoImmigration(): 0:00:00.722579
+DoInMortality(): 0:00:00.063941
+GetMetrics(): 0:00:00.015626
+End Generation/Year Loop4: 0:00:03.499478
+
