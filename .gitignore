@@ -1,0 +1,6 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+R/data-raw/ne_10m_lakes.shp
+R/data-raw/ne_10m_rivers_lake_centerlines.shp
