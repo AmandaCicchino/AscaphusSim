@@ -1,0 +1,157 @@
+---
+title: "Untitled"
+author: "ASC"
+date: "2024-11-04"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(cowplot)
+```
+
+
+NOTE: will need to add replicate in here - refer back to Travis and Erin's tut: https://github.com/trasea986/cdmetapop_tutorial.github.io/blob/gh-pages/begin_tut.md
+
+### Making the df wanted 
+
+move the ind to the post process. for the big sim,s will need to decide on whether want to sample or not (indSample) - or can do that at the end?
+
+```{r}
+setwd("C:/Users/cicch/CDMetaPOP_v2.74/ASC/OUTPUT_150_run1730520269")
+
+#create a dataframe of every individual, by pulling in all of the outputs created after running CDMetaPOP
+data_df = list.files(pattern = paste("ind*", sep=''), #this is the pattern for pulling in files
+                          full.names = TRUE, 
+                          recursive = TRUE, 
+                          include.dirs = TRUE) %>% 
+  map_df(function(x) read_csv(x, col_types = cols(.default = "c")) %>% mutate(filename=paste(dirname((x)),basename(x),sep="/")))
+
+#break up the column with the file name to delineate the year of the output
+
+data_df2 <-data_df %>%  separate_wider_delim(filename, delim ="/", names =c ("junk", "replicate", "indyear"))
+data_df3 <-data_df2 %>%  separate_wider_delim(indyear, delim ="nd", names =c ("i", "year"))    
+data_df4 <-data_df3 %>%  separate_wider_delim(year, delim =".", names =c ("year", "csv"))
+
+
+#delete the garbage columns
+data_df3$junk <- NULL
+data_df4$i <- NULL
+data_df4$csv <- NULL
+
+
+#select the columns wanted for a new df; set column data types after; You will likely want different sets of columns depending on your research question.
+#for this post-processing, I want the alleles, age, coords, subpatch, sex?
+
+proc_df<- data_df4 %>% dplyr::select(year,replicate, PatchID, SubPatchID, sex, XCOORD, YCOORD, L0A0, L0A1, L1A0, L1A1) 
+
+
+#one last clean up step: removing the initialization individuals (year == -1) and year 0 individuals
+
+proc_df <- proc_df %>%
+  filter(year != "-1") %>% 
+  filter (year != "0")
+
+
+proc_df$L0A0<- as.numeric(proc_df$L0A0)
+proc_df$L0A1<- as.numeric(proc_df$L0A1)
+proc_df$L1A0<- as.numeric(proc_df$L1A0)
+proc_df$L1A1<- as.numeric(proc_df$L1A1)
+proc_df$year<- as.numeric(proc_df$year)
+```
+
+
+### Number of individuals over time
+```{r}
+pop_df <- proc_df %>%
+  group_by(replicate, year, .drop = FALSE) %>% #we use .drop = FALSE here in case some years don't have any individuals, but we still want that data point for plotting
+  summarise(pop = n())
+
+pop_df_sum <- pop_df %>%
+  group_by(year) %>%
+  summarise(mean_pop = mean(pop),
+            stdev_pop = sd(pop))
+
+pop_plot <- ggplot(pop_df_sum, aes(x = year, y = mean_pop)) + 
+  geom_ribbon(aes(ymin = mean_pop - stdev_pop, ymax = mean_pop + stdev_pop), alpha = .3, fill="lightgray", color="lightgray") +
+  geom_line(color = "black", size = 1.2) +
+  xlab("Year") +
+  ylab("Population Size") +
+  scale_x_continuous(n.breaks = 10)+  #adjust to match to multiple of your data
+  theme_bw()
+
+
+```
+
+### Neutral Locus 
+
+```{r} 
+L1_df <- proc_df %>%
+  group_by(replicate, year, .drop = FALSE) %>%
+  summarise_at(vars(L1A0:L1A1), sum, na.rm = TRUE)
+
+#add in population so we can focus on allele frequencies
+L1_df <- merge(L1_df, pop_df, by=c("replicate", "year"))
+
+#because individuas are diploid, we need multiple the population by 2 to get allele frequency
+L1_df$total <- (L1_df$pop * 2)
+
+#we can now remove the population count
+L1_df$pop <- NULL
+
+#gathering the columns of alleles
+L1_df_gathered <- gather(L1_df, key = "Allele", counts, L1A0:L1A1)
+
+
+```
+
+###adaptive 
+
+```{r}
+L0_df <- proc_df %>%
+  group_by(replicate, year, .drop = FALSE) %>%
+  summarise_at(vars(L0A0:L0A1), sum, na.rm = TRUE)
+
+#add in population so we can focus on allele frequencies
+L0_df <- merge(L0_df, pop_df, by=c("replicate", "year"))
+
+#because individuas are diploid, we need multiple the population by 2 to get allele frequency
+L0_df$total <- (L0_df$pop * 2)
+
+#we can now remove the population count
+L0_df$pop <- NULL
+
+#gathering the columns of alleles
+L0_df_gathered <- gather(L0_df, key = "Allele", counts, L0A0:L0A1)
+
+#combine, and then calculate proportion
+allele_freq_df <- rbind(L0_df_gathered, L1_df_gathered)
+allele_freq_df$freq <- allele_freq_df$counts/allele_freq_df$total
+
+#next, break up the full allele name so that we have an allele and a locus column
+allele_freq_df <- separate(allele_freq_df, col = Allele, into = c('Locus', 'Allele'), sep = 2)
+
+#lastly, rename the loci to match what they are
+allele_freq_df$Locus <- as.factor(allele_freq_df$Locus)
+levels(allele_freq_df$Locus) <- c("Adaptive", "Neutral")
+
+allele_freq_df_sum <- allele_freq_df %>%
+  group_by(year, Locus, Allele) %>%
+  summarise(mean_freq = mean(freq),
+            stdev_freq = sd(freq))
+
+allele_plot <- ggplot(allele_freq_df_sum, aes(x = year, y = mean_freq, color = Allele)) + 
+  geom_ribbon(aes(ymin=mean_freq-stdev_freq, ymax=mean_freq+stdev_freq, group = Allele), fill="lightgray", color="lightgray", alpha=.5) +
+  geom_line(size = 1.2) +
+  facet_wrap(~Locus) +
+  scale_color_manual(values = c("darkblue", "darkgreen"))+
+  xlab("Year") +
+  ylab("Allele Frequency") +
+  scale_x_continuous(n.breaks = 7) +
+  theme_bw(base_size = 14) +
+  theme(legend.position = "top")
+```
+
+
+
+
+

@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+author: "ASC"
+date: "2024-11-02"
+output: html_document
+---
+Packages
+```{r}
+library(tidyverse)
+library (landscapeR)
+library(raster)
+library(sf)
+library(terra)
+library(secr)
+library(PopGenReport)
+```
+
+
+```{r}
+points<- read.csv("data-raw/latlong.csv")
+ORpoints<- points %>% filter (State=="OR")
+
+ext <- buffer(ORpoints,200)
+
+#30m DEM
+#read in the DEM 30m resolution - downloaded from Open topography 
+#United States Geological Survey (2021). United States Geological Survey 3D Elevation Program 1 arc-second Digital Elevation Model. Distributed by OpenTopography. https://doi.org/10.5069/G98K778D.
+
+file_name<-"data-raw/rasters_USGS30m.tar.gz"
+#unzip into a new directory
+untar(file_name, exdir = "temptar/")
+dem30<- raster("temptar/output_USGS30m.tif")
+dem30
+plot(dem30)
+
+###cropping it to my extent xmin xmax ymin ymax
+e<- extent(-122.75,-121.9, 43.25, 45.25)
+rc<- crop(dem30, e)
+rc
+plot(rc)
+rast(rc)
+
+riv<- st_read("data-raw/ne_10m_rivers_lake_centerlines.shp")
+lak<- st_read("data-raw/ne_10m_lakes.shp")
+
+```
+
+extra text 
+```{r}
+
+##turning into points then tibble for ggplot
+rc_t<- as.data.frame(rc, xy=TRUE)
+
+
+usa<- ne_states(country=c('united states of america', 'canada'), returnclass = "sf")
+ 
+
+mappt<-ggplot(data=usa)+
+  geom_sf()+
+  geom_raster(data=rc_t,aes(x = x, y = y, fill=output_USGS30m), alpha=0.5)+
+  scale_fill_distiller(type = "seq", direction = -1, palette = "YlOrBr", name= "Elevation (m)")+
+  geom_sf(data=riv, size= 0.1, color ="blue", fill =NA, alpha = 0.5)+
+  geom_sf(data=lak, size=0.1, color= "blue", fill ="blue", alpha =0.5)+
+  geom_point(data=ORpoints, mapping = aes(x = Longitude, y = Latitude), col="Dark Green", size=3)+
+  coord_sf(xlim = c(-122.75,-121.9), ylim = c(43.25, 45.25), expand = FALSE)+
+
+  annotation_scale(location = "br", width_hint = 0.25) +
+  annotation_north_arrow(location = "br", which_north = "true", 
+        pad_x = unit(0.1, "in"), pad_y = unit(0.2, "in"),
+        style = north_arrow_minimal) +
+  labs(x="", y="")+
+  theme_classic()+
+    theme(text=element_text(size=18))
+
+```
